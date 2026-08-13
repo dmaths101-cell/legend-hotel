@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legend Hotel — Five-Star Luxury</title>
+<link rel="icon" href="assets/logo (2).png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+/* ============ CONFIG NOTE ============
+   Search this file for "GAS_URL" to find where to paste your deployed
+   Google Apps Script Web App URL once you've set up the backend (see
+   SETUP-INSTRUCTIONS.md). Search "REPLACE:" to find every placeholder
+   image / text that should be swapped for your real hotel photos.
+   ======================================= */
+
+:root{
+  --black:#0a0908;
+  --charcoal:#141210;
+  --panel:#1c1912;
+  --panel-2:#211d15;
+  --gold:#c9a15a;
+  --gold-light:#e8cf94;
+  --gold-deep:#8a6d34;
+  --cream:#f3ead9;
+  --muted:#a89a7d;
+  --line:rgba(201,161,90,0.25);
+  --radius:2px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--black);
+  color:var(--cream);
+  font-family:'Jost',sans-serif;
+  font-weight:300;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{
+  font-family:'Playfair Display',serif;
+  font-weight:600;
+  letter-spacing:.01em;
+  color:var(--cream);
+}
+a{color:inherit;text-decoration:none;}
+img{max-width:100%;display:block;}
+.eyebrow{
+  font-family:'Jost',sans-serif;
+  font-size:.72rem;
+  letter-spacing:.32em;
+  text-transform:uppercase;
+  color:var(--gold);
+  display:flex;
+  align-items:center;
+  gap:.7em;
+}
+.eyebrow::before{content:"";width:28px;height:1px;background:var(--gold-deep);}
+.stars{color:var(--gold);letter-spacing:.25em;font-size:.85rem;}
+.container{max-width:1180px;margin:0 auto;padding:0 32px;}
+section{position:relative;}
+.divider{
+  width:100%;
+  display:flex;align-items:center;justify-content:center;
+  gap:14px;margin:8px 0 46px;
+  color:var(--gold-deep);
+}
+.divider .rule{flex:1;max-width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--line));}
+.divider .rule.right{background:linear-gradient(270deg,transparent,var(--line));}
+.divider svg{opacity:.9;}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.6em;
+  font-family:'Jost',sans-serif;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;
+  padding:16px 30px;border:1px solid var(--gold);color:var(--gold-light);
+  background:transparent;cursor:pointer;transition:.35s ease;border-radius:var(--radius);
+}
+.btn:hover{background:var(--gold);color:var(--black);}
+.btn-solid{background:var(--gold);color:var(--black);border-color:var(--gold);}
+.btn-solid:hover{background:var(--gold-light);border-color:var(--gold-light);}
+.btn-block{width:100%;}
+.btn-small{padding:10px 18px;font-size:.68rem;}
+
+/* ---------- Nav ---------- */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  padding:22px 0;
+  transition:.4s ease;
+  border-bottom:1px solid transparent;
+}
+header.scrolled{
+  background:rgba(10,9,8,.92);
+  backdrop-filter:blur(10px);
+  padding:14px 0;
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand img{height:46px;width:auto;transition:.4s;}
+header.scrolled .brand img{height:38px;}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.05rem;letter-spacing:.08em;color:var(--cream);}
+.brand-name small{display:block;font-family:'Jost';font-size:.55rem;letter-spacing:.35em;color:var(--gold);font-weight:400;margin-top:2px;}
+nav.links{display:flex;gap:38px;align-items:center;}
+nav.links a{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);transition:.3s;position:relative;padding-bottom:4px;}
+nav.links a:hover{color:var(--gold-light);}
+.nav-cta{display:flex;align-items:center;gap:18px;}
+.phone-pill{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--gold-light);letter-spacing:.05em;}
+.burger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;}
+.burger span{width:26px;height:1px;background:var(--gold);}
+.mobile-menu{display:none;position:fixed;inset:0;background:var(--black);z-index:300;flex-direction:column;align-items:center;justify-content:center;gap:28px;}
+.mobile-menu.open{display:flex;}
+.mobile-menu a{font-family:'Playfair Display';font-size:1.4rem;color:var(--cream);}
+.mobile-close{position:absolute;top:26px;right:32px;font-size:1.6rem;color:var(--gold);cursor:pointer;background:none;border:none;}
+
+/* ---------- Hero ---------- */
+.hero{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  position:relative;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(201,161,90,.10), transparent 55%),
+    linear-gradient(180deg, rgba(10,9,8,.35), rgba(10,9,8,.85) 70%, var(--black) 100%),
+    url('assets/hero-facade.jpg') center/cover no-repeat;
+  background-color:#0d0b09;
+  padding:140px 24px 100px;
+}
+.hero-emblem{width:120px;margin:0 auto 26px;opacity:.95;}
+.hero h1{
+  font-size:clamp(2.4rem,5.4vw,4.4rem);
+  line-height:1.08;
+  margin-bottom:18px;
+}
+.hero h1 em{font-style:italic;color:var(--gold-light);font-weight:500;}
+.hero p.sub{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:clamp(1.05rem,1.6vw,1.35rem);
+  color:var(--muted);max-width:560px;margin:0 auto 40px;
+}
+.hero-ctas{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:56px;}
+.hero-stars{margin-bottom:22px;}
+
+/* quick booking bar */
+.quick-bar{
+  max-width:980px;margin:0 auto;
+  background:rgba(28,25,18,.85);
+  border:1px solid var(--line);
+  backdrop-filter:blur(6px);
+  display:flex;flex-wrap:wrap;
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.quick-bar .qf{
+  flex:1;min-width:150px;
+  padding:16px 22px;
+  border-right:1px solid var(--line);
+}
+.quick-bar .qf:last-child{border-right:none;flex:0 0 auto;}
+.quick-bar label{display:block;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.quick-bar input, .quick-bar select{
+  width:100%;background:none;border:none;color:var(--cream);font-family:'Jost';font-size:.92rem;outline:none;
+}
+.quick-bar input::-webkit-calendar-picker-indicator{filter:invert(70%) sepia(40%) saturate(400%) hue-rotate(0deg);}
+.quick-bar .qf.action{padding:0;}
+.quick-bar .qf.action button{height:100%;width:100%;border:none;padding:16px 32px;}
+
+/* ---------- Section headers ---------- */
+.sec-head{text-align:center;max-width:640px;margin:0 auto 54px;}
+.sec-head h2{font-size:clamp(1.9rem,3.4vw,2.7rem);margin:14px 0 16px;}
+.sec-head p{color:var(--muted);font-size:.98rem;}
+.section-pad{padding:120px 0;}
+.bg-charcoal{background:var(--charcoal);}
+.bg-panel{background:linear-gradient(180deg,var(--charcoal),var(--black));}
+
+/* ---------- Rooms ---------- */
+.rooms-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px;}
+.room-card{
+  background:var(--panel);border:1px solid var(--line);
+  display:flex;flex-direction:column;
+  transition:.4s;
+}
+.room-card:hover{border-color:var(--gold);transform:translateY(-6px);}
+.room-img{
+  height:230px;background-size:cover;background-position:center;position:relative;
+}
+.room-img .price-tag{
+  position:absolute;bottom:14px;right:14px;
+  background:var(--black);border:1px solid var(--gold);
+  color:var(--gold-light);font-family:'Playfair Display';font-size:.95rem;
+  padding:8px 16px;
+}
+.room-body{padding:26px 26px 30px;flex:1;display:flex;flex-direction:column;}
+.room-body h3{font-size:1.3rem;margin-bottom:6px;}
+.room-body .meta{font-size:.78rem;color:var(--muted);letter-spacing:.05em;margin-bottom:14px;}
+.room-body ul{list-style:none;margin-bottom:22px;flex:1;}
+.room-body li{font-size:.85rem;color:var(--muted);padding:5px 0;border-top:1px solid rgba(255,255,255,.05);display:flex;gap:8px;align-items:center;}
+.room-body li:first-child{border-top:none;}
+.room-body li::before{content:"—";color:var(--gold-deep);}
+
+/* ---------- Booking form ---------- */
+.booking-wrap{
+  background:var(--panel);border:1px solid var(--line);
+  padding:52px;display:grid;grid-template-columns:1fr 1fr;gap:40px;
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.field{display:flex;flex-direction:column;gap:8px;}
+.field.full{grid-column:1/-1;}
+.field label{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);}
+.field input, .field select, .field textarea{
+  background:var(--charcoal);border:1px solid var(--line);color:var(--cream);
+  padding:13px 14px;font-family:'Jost';font-size:.92rem;outline:none;transition:.25s;
+}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--gold);}
+.field textarea{resize:vertical;min-height:90px;}
+.booking-side{border-left:1px solid var(--line);padding-left:40px;}
+.booking-side h3{font-size:1.15rem;margin-bottom:16px;}
+.booking-side p{color:var(--muted);font-size:.92rem;margin-bottom:14px;}
+.booking-side .stat{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);font-size:.9rem;}
+.form-msg{margin-top:16px;font-size:.85rem;letter-spacing:.02em;}
+.form-msg.ok{color:#a9c98b;}
+.form-msg.err{color:#d98b8b;}
+
+/* ---------- Dining ---------- */
+.menu-tabs{display:flex;gap:10px;justify-content:center;margin-bottom:50px;flex-wrap:wrap;}
+.menu-tab{
+  padding:11px 24px;border:1px solid var(--line);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;
+  cursor:pointer;color:var(--muted);background:transparent;transition:.3s;
+}
+.menu-tab.active, .menu-tab:hover{border-color:var(--gold);color:var(--gold-light);}
+.menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;}
+.menu-category{display:none;}
+.menu-category.active{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;}
+.menu-item{
+  display:flex;gap:18px;background:var(--panel);border:1px solid var(--line);padding:18px;align-items:center;
+}
+.menu-item .thumb{width:78px;height:78px;flex:0 0 auto;background-size:cover;background-position:center;border:1px solid var(--line);}
+.menu-item .info{flex:1;}
+.menu-item h4{font-size:1.02rem;margin-bottom:4px;}
+.menu-item p{font-size:.8rem;color:var(--muted);margin-bottom:8px;}
+.menu-item .row{display:flex;justify-content:space-between;align-items:center;}
+.menu-item .price{color:var(--gold-light);font-family:'Playfair Display';}
+.add-btn{
+  border:1px solid var(--gold);color:var(--gold-light);background:none;width:30px;height:30px;
+  font-size:1rem;cursor:pointer;transition:.25s;
+}
+.add-btn:hover{background:var(--gold);color:var(--black);}
+
+/* cart drawer */
+.cart-fab{
+  position:fixed;bottom:28px;right:28px;z-index:150;
+  background:var(--gold);color:var(--black);border:none;
+  width:60px;height:60px;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+.cart-fab .count{
+  position:absolute;top:-4px;right:-4px;background:var(--black);color:var(--gold-light);
+  border:1px solid var(--gold);border-radius:50%;width:22px;height:22px;font-size:.68rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.cart-drawer{
+  position:fixed;top:0;right:-420px;width:400px;max-width:92vw;height:100vh;z-index:400;
+  background:var(--charcoal);border-left:1px solid var(--line);
+  transition:right .45s ease;display:flex;flex-direction:column;
+}
+.cart-drawer.open{right:0;}
+.cart-head{padding:26px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.cart-head h3{font-size:1.2rem;}
+.cart-close{background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;}
+.cart-items{flex:1;overflow-y:auto;padding:20px 26px;}
+.cart-line{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.cart-line .ci-thumb{width:52px;height:52px;background-size:cover;background-position:center;flex:0 0 auto;border:1px solid var(--line);}
+.cart-line .ci-info{flex:1;}
+.cart-line .ci-info h5{font-size:.9rem;font-weight:500;font-family:'Jost';}
+.cart-line .ci-info .p{font-size:.78rem;color:var(--muted);}
+.qty-ctrl{display:flex;align-items:center;gap:8px;}
+.qty-ctrl button{width:22px;height:22px;background:none;border:1px solid var(--line);color:var(--gold-light);cursor:pointer;font-size:.85rem;}
+.cart-empty{color:var(--muted);text-align:center;padding:60px 0;font-size:.9rem;}
+.cart-foot{padding:24px 26px;border-top:1px solid var(--line);}
+.cart-total-row{display:flex;justify-content:space-between;margin-bottom:16px;font-family:'Playfair Display';font-size:1.15rem;}
+.cart-foot .field{margin-bottom:12px;}
+.overlay-dim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:350;opacity:0;pointer-events:none;transition:.4s;}
+.overlay-dim.show{opacity:1;pointer-events:auto;}
+
+/* ---------- Amenities ---------- */
+.amenities-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+.amenity{background:var(--black);padding:38px 24px;text-align:center;}
+.amenity svg{width:30px;height:30px;stroke:var(--gold);margin-bottom:16px;}
+.amenity h4{font-size:.95rem;margin-bottom:6px;font-weight:500;letter-spacing:.02em;}
+.amenity p{font-size:.78rem;color:var(--muted);}
+
+.about-wrap{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.about-img{height:460px;background-size:cover;background-position:center;border:1px solid var(--line);position:relative;}
+.about-img::after{content:"";position:absolute;inset:14px;border:1px solid var(--gold-deep);pointer-events:none;}
+.about-text p{color:var(--muted);margin-bottom:18px;}
+.about-stats{display:flex;gap:36px;margin-top:34px;}
+.about-stats div{text-align:left;}
+.about-stats strong{display:block;font-family:'Playfair Display';font-size:1.8rem;color:var(--gold-light);}
+.about-stats span{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+
+/* ---------- Gallery ---------- */
+.gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:170px;gap:8px;}
+.gallery-grid .g-item{background-size:cover;background-position:center;position:relative;overflow:hidden;}
+.gallery-grid .g-item span{position:absolute;bottom:8px;left:10px;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-light);background:rgba(0,0,0,.55);padding:4px 8px;}
+.gallery-grid .g-item.tall{grid-row:span 2;}
+
+/* ---------- Contact ---------- */
+.contact-wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;}
+.contact-card{background:var(--panel);border:1px solid var(--line);padding:36px;margin-bottom:20px;}
+.contact-card .label{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.contact-card .value{font-family:'Playfair Display';font-size:1.5rem;}
+.contact-card .value a{color:var(--gold-light);}
+.contact-card p.small{color:var(--muted);font-size:.85rem;margin-top:8px;}
+.contact-card.phone-card .value a{display:inline-flex;align-items:center;gap:10px;}
+
+/* ---------- Footer ---------- */
+footer{background:var(--black);border-top:1px solid var(--line);padding:70px 0 26px;}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;margin-bottom:60px;}
+.footer-brand img{height:52px;margin-bottom:16px;}
+.footer-brand p{color:var(--muted);font-size:.88rem;max-width:280px;}
+.footer-col h4{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
+.footer-col a{display:block;color:var(--muted);font-size:.88rem;margin-bottom:12px;transition:.25s;}
+.footer-col a:hover{color:var(--gold-light);}
+.footer-bottom{border-top:1px solid var(--line);padding-top:26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+.footer-bottom p{font-size:.78rem;color:var(--muted);}
+.socials{display:flex;gap:14px;}
+.socials a{width:34px;height:34px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--gold);}
+.socials a:hover{border-color:var(--gold);}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120%);
+  background:var(--gold);color:var(--black);padding:14px 26px;font-size:.85rem;
+  z-index:500;transition:.4s ease;letter-spacing:.02em;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ---------- Responsive ---------- */
+@media(max-width:980px){
+  nav.links{display:none;}
+  .burger{display:flex;}
+  .rooms-grid{grid-template-columns:1fr;}
+  .menu-grid, .menu-category.active{grid-template-columns:1fr;}
+  .booking-wrap{grid-template-columns:1fr;padding:32px;}
+  .booking-side{border-left:none;padding-left:0;border-top:1px solid var(--line);padding-top:28px;}
+  .amenities-grid{grid-template-columns:repeat(2,1fr);}
+  .about-wrap{grid-template-columns:1fr;}
+  .about-img{height:300px;}
+  .gallery-grid{grid-template-columns:repeat(2,1fr);}
+  .contact-wrap{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .quick-bar{flex-direction:column;}
+  .quick-bar .qf{border-right:none;border-bottom:1px solid var(--line);}
+  .form-grid{grid-template-columns:1fr;}
+  .phone-pill{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header id="siteHeader">
+  <div class="container nav-inner">
+    <div class="brand">
+      <img src="assets/logo (2).png" alt="Legend Hotel">
+      <div class="brand-name">Legend Hotel<small>Five-Star Luxury</small></div>
+    </div>
+    <nav class="links">
+      <a href="#rooms">Rooms</a>
+      <a href="#dining">Dining</a>
+      <a href="#amenities">Amenities</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="nav-cta">
+      <div class="phone-pill">📞 <a href="tel:+2347025674894>+234 70 25674894</a></div>
+      <a href="#booking" class="btn btn-solid btn-small">Book Now</a>
+      <button class="burger" id="burgerBtn"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose">✕</button>
+  <a href="#rooms">Rooms</a>
+  <a href="#dining">Dining</a>
+  <a href="#amenities">Amenities</a>
+  <a href="#gallery">Gallery</a>
+  <a href="#contact">Contact</a>
+  <a href="tel:+2347025674894" style="color:var(--gold);">+234 70 2567 4894</a>
+</div>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="home">
+  <div class="container" style="max-width:780px;">
+    <img src="assets/building.png" alt="Legend Hotel Crest" class="hero-emblem">
+    <div class="hero-stars">★★★★★</div>
+    <h1>Where every stay becomes<br><em>a legend of its own</em></h1>
+    <p class="sub">Five-star suites, curated dining and effortless service in the heart of the city — reserved for those who expect nothing less than remarkable.</p>
+    <div class="hero-ctas">
+      <a href="#booking" class="btn btn-solid">Book A Room</a>
+      <a href="#dining" class="btn">Order Food</a>
+    </div>
+
+    <div class="quick-bar">
+      <div class="qf">
+        <label>Check In</label>
+        <input type="date" id="qbCheckin">
+      </div>
+      <div class="qf">
+        <label>Check Out</label>
+        <input type="date" id="qbCheckout">
+      </div>
+      <div class="qf">
+        <label>Guests</label>
+        <select id="qbGuests"><option>1 Guest</option><option>2 Guests</option><option>3 Guests</option><option>4+ Guests</option></select>
+      </div>
+      <div class="qf">
+        <label>Room Type</label>
+        <select id="qbRoomType"><option>Deluxe Room</option><option>Junior Suite</option><option>Executive Suite</option><option>Presidential Suite</option></select>
+      </div>
+      <div class="qf action">
+        <button class="btn btn-solid btn-block" style="height:100%;border:none;" id="qbFindBtn">Find Room</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ROOMS ============ -->
+<section class="section-pad bg-charcoal" id="rooms">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center;">Accommodation</div>
+      <h2>Our Exclusive Rooms &amp; Suites</h2>
+      <p>Each room is appointed with hand-finished furnishings, panoramic views and the quiet comforts of true five-star hospitality.</p>
+    </div>
+
+    <div class="rooms-grid">
+      <div class="room-card" data-room="Deluxe Room" data-price="180">
+        <!-- REPLACE: assets/room-deluxe.jpg -->
+        <div class="room-img" style="background-image:url('assets/deluxe.png'), linear-gradient(135deg,#2a2418,#100e0a);">
+          <div class="price-tag">$180 / night</div>
+        </div>
+        <div class="room-body">
+          <h3>Deluxe Room</h3>
+          <div class="meta">32 m² · King or Twin · City View</div>
+          <ul>
+            <li>Free high-speed WiFi</li>
+            <li>Smart TV &amp; workspace</li>
+            <li>Rain shower &amp; premium linens</li>
+          </ul>
+          <button class="btn btn-block book-room-btn">Book This Room</button>
+        </div>
+      </div>
+
+      <div class="room-card" data-room="Junior Suite" data-price="260">
+        <div class="room-img" style="background-image:url('assets/junior suite.png'), linear-gradient(135deg,#2a2418,#100e0a);">
+          <div class="price-tag">$260 / night</div>
+        </div>
+        <div class="room-body">
+          <h3>Junior Suite</h3>
+          <div class="meta">48 m² · King Bed · Skyline View</div>
+          <ul>
+            <li>Separate lounge area</li>
+            <li>Espresso bar &amp; minibar</li>
+            <li>Soaking tub &amp; rain shower</li>
+          </ul>
+          <button class="btn btn-block book-room-btn">Book This Room</button>
+        </div>
+      </div>
+
+      <div class="room-card" data-room="Executive Suite" data-price="360">
+        <div class="room-img" style="background-image:url('assets/executive.png'), linear-gradient(135deg,#2a2418,#100e0a);">
+          <div class="price-tag">$360 / night</div>
+        </div>
+        <div class="room-body">
+          <h3>Executive Suite</h3>
+          <div class="meta">64 m² · King Bed · Ocean View</div>
+          <ul>
+            <li>Private balcony &amp; dining nook</li>
+            <li>Butler service on request</li>
+            <li>Complimentary airport transfer</li>
+          </ul>
+          <button class="btn btn-block book-room-btn">Book This Room</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOOKING FORM ============ -->
+<section class="section-pad bg-panel" id="booking">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center;">Reservations</div>
+      <h2>Complete Your Booking</h2>
+      <p>Fill in your details below and our reservations team will confirm your stay by email or phone within a few hours.</p>
+    </div>
+
+    <div class="booking-wrap">
+      <form id="bookingForm" class="form-grid">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" name="fullName" required>
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" name="phone" required>
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="field">
+          <label>Room Type</label>
+          <select name="roomType" id="bfRoomType">
+            <option>Deluxe Room</option>
+            <option>Junior Suite</option>
+            <option>Executive Suite</option>
+            <option>Presidential Suite</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Check-In Date</label>
+          <input type="date" name="checkIn" id="bfCheckin" required>
+        </div>
+        <div class="field">
+          <label>Check-Out Date</label>
+          <input type="date" name="checkOut" id="bfCheckout" required>
+        </div>
+        <div class="field">
+          <label>Guests</label>
+          <select name="guests">
+            <option>1 Guest</option><option>2 Guests</option><option>3 Guests</option><option>4+ Guests</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Rooms Needed</label>
+          <select name="roomsCount"><option>1</option><option>2</option><option>3</option><option>4+</option></select>
+        </div>
+        <div class="field full">
+          <label>Special Requests (optional)</label>
+          <textarea name="notes" placeholder="Late check-in, high floor, allergies, celebration, etc."></textarea>
+        </div>
+        <div class="field full">
+          <button type="submit" class="btn btn-solid btn-block" id="bookSubmitBtn">Request Reservation</button>
+          <div class="form-msg" id="bookingMsg"></div>
+        </div>
+      </form>
+
+      <div class="booking-side">
+        <div class="eyebrow">Why Book Direct</div>
+        <h3 style="margin-top:14px;">The Legend Assurance</h3>
+        <p>Booking directly guarantees our best available rate, complimentary breakfast for two, and priority upgrades subject to availability.</p>
+        <div class="stat"><span>Best rate guarantee</span><span>✓</span></div>
+        <div class="stat"><span>Free cancellation (48h)</span><span>✓</span></div>
+        <div class="stat"><span>Breakfast included</span><span>✓</span></div>
+        <div class="stat"><span>24-hour front desk</span><span>✓</span></div>
+        <p style="margin-top:22px;">Prefer to speak with someone directly?</p>
+        <a href="tel:+2340000000000" class="btn btn-block" style="margin-top:10px;">Call +234 70 2567 4894</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DINING / FOOD ORDER ============ -->
+<section class="section-pad bg-charcoal" id="dining">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center;">Room Service &amp; Restaurant</div>
+      <h2>Order From Our Kitchen</h2>
+      <p>Whether you're dining in-room or reserving a table, browse our menu and place your order in a few taps.</p>
+    </div>
+
+    <div class="menu-tabs" id="menuTabs">
+      <button class="menu-tab active" data-cat="breakfast">Breakfast</button>
+      <button class="menu-tab" data-cat="mains">Main Course</button>
+      <button class="menu-tab" data-cat="drinks">Drinks</button>
+      <button class="menu-tab" data-cat="desserts">Desserts</button>
+    </div>
+
+    <div class="menu-category active" data-cat="breakfast">
+      <div class="menu-item" data-name="Continental Breakfast" data-price="18">
+        <div class="thumb" style="background-image:url('assets/food-continental.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+        <div class="info">
+          <h4>Continental Breakfast</h4>
+          <p>Pastries, seasonal fruit, yoghurt &amp; fresh juice</p>
+          <div class="row"><span class="price">$18</span><button class="add-btn" onclick="addToCart(this)">+</button></div>
+        </div>
+      </div>
+      <div class="menu-item" data-name="Eggs Royale" data-price="16">
+        <div class="thumb" style="background-image:url('assets/food-eggs-royale.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+        <div class="info">
+          <h4>Eggs Royale</h4>
+          <p>Poached eggs, smoked salmon, hollandaise, muffin</p>
+          <div class="row"><span class="price">$16</span><button class="add-btn" onclick="addToCart(this)">+</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-category" data-cat="mains">
+      <div class="menu-item" data-name="Grilled Sea Bass" data-price="34">
+        <div class="thumb" style="background-image:url('assets/food-seabass.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+        <div class="info">
+          <h4>Grilled Sea Bass</h4>
+          <p>Saffron risotto, charred lemon, herb oil</p>
+          <div class="row"><span class="price">$34</span><button class="add-btn" onclick="addToCart(this)">+</button></div>
+        </div>
+      </div>
+      <div class="menu-item" data-name="Wagyu Beef Burger" data-price="28">
+        <div class="thumb" style="background-image:url('assets/food-burger.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+        <div class="info">
+          <h4>Wagyu Beef Burger</h4>
+          <p>Truffle aioli, aged cheddar, brioche, fries</p>
+          <div class="row"><span class="price">$28</span><button class="add-btn" onclick="addToCart(this)">+</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-category" data-cat="drinks">
+      <div class="menu-item" data-name="Signature Old Fashioned" data-price="15">
+        <div class="thumb" style="background-image:url('assets/drink-oldfashioned.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+        <div class="info">
+          <h4>Signature Old Fashioned</h4>
+          <p>House bourbon, orange bitters, smoked sugar</p>
+          <div class="row"><span class="price">$15</span><button class="add-btn" onclick="addToCart(this)">+</button></div>
+        </div>
+      </div>
+      <div class="menu-item" data-name="Fresh Pressed Juice" data-price="8">
+        <div class="thumb" style="background-image:url('assets/drink-juice.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+        <div class="info">
+          <h4>Fresh Pressed Juice</h4>
+          <p>Orange, watermelon or green detox</p>
+          <div class="row"><span class="price">$8</span><button class="add-btn" onclick="addToCart(this)">+</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-category" data-cat="desserts">
+      <div class="menu-item" data-name="Molten Chocolate Cake" data-price="12">
+        <div class="thumb" style="background-image:url('assets/dessert-chocolate.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+        <div class="info">
+          <h4>Molten Chocolate Cake</h4>
+          <p>Vanilla bean ice cream, gold leaf</p>
+          <div class="row"><span class="price">$12</span><button class="add-btn" onclick="addToCart(this)">+</button></div>
+        </div>
+      </div>
+      <div class="menu-item" data-name="Crème Brûlée" data-price="11">
+        <div class="thumb" style="background-image:url('assets/dessert-brulee.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+        <div class="info">
+          <h4>Crème Brûlée</h4>
+          <p>Madagascar vanilla, caramelised sugar</p>
+          <div class="row"><span class="price">$11</span><button class="add-btn" onclick="addToCart(this)">+</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AMENITIES ============ -->
+<section class="section-pad" id="amenities">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center;">The Legend Experience</div>
+      <h2>Amenities &amp; Services</h2>
+    </div>
+  </div>
+  <div class="amenities-grid">
+    <div class="amenity">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M3 12h18M3 12a9 9 0 0118 0M3 12a9 9 0 0018 0M12 3v18"/></svg>
+      <h4>Infinity Pool</h4><p>Rooftop pool with skyline views</p>
+    </div>
+    <div class="amenity">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <h4>24-Hour Front Desk</h4><p>Always here, whenever you need us</p>
+    </div>
+    <div class="amenity">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.3L12 15.8 7.1 18l.9-5.3-4-3.9 5.5-.8z"/></svg>
+      <h4>Luxury Spa</h4><p>Full-service spa and wellness suite</p>
+    </div>
+    <div class="amenity">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v16M4 9h16"/></svg>
+      <h4>Fine Dining</h4><p>Award-nominated in-house restaurant</p>
+    </div>
+    <div class="amenity">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M3 18v-2a4 4 0 014-4h10a4 4 0 014 4v2M7 10a3 3 0 106 0 3 3 0 00-6 0z"/></svg>
+      <h4>Business Centre</h4><p>Meeting rooms &amp; event spaces</p>
+    </div>
+    <div class="amenity">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M12 20V10M12 10a4 4 0 10-4-4M12 10a4 4 0 014-4"/></svg>
+      <h4>Fitness Centre</h4><p>Open around the clock</p>
+    </div>
+    <div class="amenity">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M4 17l4-10h8l4 10M4 17h16M8 17v3M16 17v3"/></svg>
+      <h4>Valet Parking</h4><p>Complimentary for all guests</p>
+    </div>
+    <div class="amenity">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M5 12a7 7 0 0114 0M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>
+      <h4>Airport Transfer</h4><p>Private car on request</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="section-pad bg-charcoal">
+  <div class="container about-wrap">
+    <!-- REPLACE: assets/about-lobby.jpg -->
+    <div class="about-img" style="background-image:url('assets/lobby.png'), linear-gradient(135deg,#2a2418,#100e0a);"></div>
+    <div class="about-text">
+      <div class="eyebrow">Our Story</div>
+      <h2 style="margin:16px 0 20px;">A Legacy of Quiet Excellence</h2>
+      <p>REPLACE: Since opening its doors, Legend Hotel has stood as a landmark of understated luxury — where meticulous service, refined interiors and genuine hospitality come together for every guest, every time.</p>
+      <p>From the moment you arrive, our team is dedicated to making your stay effortless, whether you're here for business, celebration, or quiet escape.</p>
+      <div class="about-stats">
+        <div><strong>200+</strong><span>Rooms &amp; Suites</span></div>
+        <div><strong>5★</strong><span>Guest Rating</span></div>
+        <div><strong>15</strong><span>Years of Service</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section class="section-pad" id="gallery">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center;">Gallery</div>
+      <h2>A Glimpse Inside Legend Hotel</h2>
+      <p>REPLACE each image path below (assets/gallery-1.jpg … gallery-6.jpg) with your own hotel photography.</p>
+    </div>
+  </div>
+  <div class="container">
+    <div class="gallery-grid">
+      <div class="g-item tall" style="background-image:url('assets/reception.png'), linear-gradient(135deg,#2a2418,#100e0a);"><span>Lobby</span></div>
+      <div class="g-item" style="background-image:url('assets/gallery-2.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"><span>Suite</span></div>
+      <div class="g-item" style="background-image:url('assets/gallery-3.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"><span>Restaurant</span></div>
+      <div class="g-item tall" style="background-image:url('assets/gallery-4.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"><span>Pool</span></div>
+      <div class="g-item" style="background-image:url('assets/gallery-5.jpg'), linear-gradient(135deg,#2a2418,#100e0a);"><span>Spa</span></div>
+      <div class="g-item" style="background-image:url('assets/pool.png'), linear-gradient(135deg,#2a2418,#100e0a);"><span>Bar</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="section-pad bg-panel" id="contact">
+  <div class="container">
+    <div class="sec-head">
+      <div class="eyebrow" style="justify-content:center;">Get In Touch</div>
+      <h2>Speak With Our Team</h2>
+      <p>For reservations, events or general enquiries, reach hotel management directly — or send a message below.</p>
+    </div>
+
+    <div class="contact-wrap">
+      <div>
+        <div class="contact-card phone-card">
+          <div class="label">Call Management</div>
+          <div class="value"><a href="tel:+2347025674894">📞 +234 70 2567 4894</a></div>
+          <p class="small">Available 24 hours a day, 7 days a week</p>
+        </div>
+        <div class="contact-card">
+          <div class="label">Email</div>
+          <div class="value" style="font-size:1.15rem;"><a href="mailto:reservations@legendhotel.com">reservations@legendhotel.com</a></div>
+        </div>
+        <div class="contact-card">
+          <div class="label">Address</div>
+          <div class="value" style="font-size:1.1rem;">REPLACE: 1 Legend Avenue, Victoria Island, Lagos</div>
+        </div>
+      </div>
+
+      <form id="contactForm" class="field" style="display:flex;flex-direction:column;gap:18px;background:var(--panel);border:1px solid var(--line);padding:36px;">
+        <div class="form-grid">
+          <div class="field"><label>Name</label><input type="text" name="name" required></div>
+          <div class="field"><label>Phone</label><input type="tel" name="phone" required></div>
+          <div class="field full"><label>Email</label><input type="email" name="email" required></div>
+          <div class="field full"><label>Message</label><textarea name="message" required placeholder="How can we help?"></textarea></div>
+        </div>
+        <button type="submit" class="btn btn-solid" id="contactSubmitBtn">Send Message</button>
+        <div class="form-msg" id="contactMsg"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="assets/logo (2).png" alt="Legend Hotel">
+        <p>Five-star hospitality, thoughtfully delivered. Book your stay or order in-room dining in just a few clicks.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <a href="#rooms">Rooms &amp; Suites</a>
+        <a href="#dining">Dining</a>
+        <a href="#amenities">Amenities</a>
+        <a href="#gallery">Gallery</a>
+      </div>
+      <div class="footer-col">
+        <h4>Guest Services</h4>
+        <a href="#booking">Reservations</a>
+        <a href="#contact">Contact Us</a>
+        <a href="tel:+2347025674894">+234 70 2567 4894</a>
+        <a href="mailto:reservations@legendhotel.com">reservations@legendhotel.com</a>
+      </div>
+      <div class="footer-col">
+        <h4>Follow</h4>
+        <div class="socials">
+          <a href="#">IG</a><a href="#">FB</a><a href="#">TW</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Legend Hotel. All rights reserved.</p>
+      <p>Crafted with quiet excellence.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ CART DRAWER ============ -->
+<div class="overlay-dim" id="overlayDim"></div>
+<button class="cart-fab" id="cartFab">🛎️<span class="count" id="cartCount">0</span></button>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <h3>Your Order</h3>
+    <button class="cart-close" id="cartCloseBtn">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty">Your cart is empty. Add something delicious from the menu.</div>
+  </div>
+  <div class="cart-foot" id="cartFoot" style="display:none;">
+    <div class="cart-total-row"><span>Total</span><span id="cartTotal">$0</span></div>
+    <div class="field"><label>Full Name</label><input type="text" id="ordName" required></div>
+    <div class="field"><label>Phone</label><input type="tel" id="ordPhone" required></div>
+    <div class="field"><label>Room No. / Delivery Location</label><input type="text" id="ordLocation" placeholder="e.g. Room 402 or Table 6" required></div>
+    <div class="field"><label>Notes (optional)</label><textarea id="ordNotes" placeholder="Allergies, spice level, etc."></textarea></div>
+    <button class="btn btn-solid btn-block" id="orderSubmitBtn" style="margin-top:6px;">Place Order</button>
+    <div class="form-msg" id="orderMsg"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   GOOGLE APPS SCRIPT CONFIG
+   Paste your deployed Web App URL below. See SETUP-INSTRUCTIONS.md
+   ========================================================= */
+const GAS_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+/* ---------- Helper: send data to backend ---------- */
+async function sendToBackend(payload){
+  if(!GAS_URL || GAS_URL.indexOf("PASTE_YOUR") !== -1){
+    console.warn("GAS_URL not configured yet — request not actually sent:", payload);
+    return { ok:true, simulated:true };
+  }
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // keeps it a "simple request" (no CORS preflight)
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  return data;
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+/* ---------- Nav scroll + mobile menu ---------- */
+const header = document.getElementById('siteHeader');
+window.addEventListener('scroll', ()=>{
+  header.classList.toggle('scrolled', window.scrollY > 40);
+});
+const burgerBtn = document.getElementById('burgerBtn');
+const mobileMenu = document.getElementById('mobileMenu');
+burgerBtn.addEventListener('click', ()=> mobileMenu.classList.add('open'));
+document.getElementById('mobileClose').addEventListener('click', ()=> mobileMenu.classList.remove('open'));
+mobileMenu.querySelectorAll('a').forEach(a=> a.addEventListener('click', ()=> mobileMenu.classList.remove('open')));
+
+/* ---------- Quick booking bar -> scroll to booking form, prefill ---------- */
+document.getElementById('qbFindBtn').addEventListener('click', ()=>{
+  document.getElementById('bfCheckin').value = document.getElementById('qbCheckin').value;
+  document.getElementById('bfCheckout').value = document.getElementById('qbCheckout').value;
+  document.getElementById('bfRoomType').value = document.getElementById('qbRoomType').value;
+  document.getElementById('booking').scrollIntoView({behavior:'smooth'});
+});
+
+/* ---------- Room card "Book This Room" buttons ---------- */
+document.querySelectorAll('.book-room-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const card = btn.closest('.room-card');
+    document.getElementById('bfRoomType').value = card.dataset.room;
+    document.getElementById('booking').scrollIntoView({behavior:'smooth'});
+  });
+});
+
+/* ---------- Booking form submit ---------- */
+document.getElementById('bookingForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('bookSubmitBtn');
+  const msg = document.getElementById('bookingMsg');
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.action = 'bookRoom';
+  data.timestamp = new Date().toISOString();
+
+  if(new Date(data.checkOut) <= new Date(data.checkIn)){
+    msg.textContent = "Check-out date must be after check-in date.";
+    msg.className = "form-msg err";
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = "Sending...";
+  try{
+    await sendToBackend(data);
+    msg.textContent = "Reservation request received! We'll confirm shortly by email or phone.";
+    msg.className = "form-msg ok";
+    showToast("Booking request sent ✓");
+    form.reset();
+  }catch(err){
+    console.error(err);
+    msg.textContent = "Something went wrong sending your request. Please call us instead.";
+    msg.className = "form-msg err";
+  }finally{
+    btn.disabled = false; btn.textContent = "Request Reservation";
+  }
+});
+
+/* ---------- Contact form submit ---------- */
+document.getElementById('contactForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('contactSubmitBtn');
+  const msg = document.getElementById('contactMsg');
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.action = 'contactMessage';
+  data.timestamp = new Date().toISOString();
+
+  btn.disabled = true; btn.textContent = "Sending...";
+  try{
+    await sendToBackend(data);
+    msg.textContent = "Message sent — our team will respond shortly.";
+    msg.className = "form-msg ok";
+    showToast("Message sent ✓");
+    form.reset();
+  }catch(err){
+    console.error(err);
+    msg.textContent = "Could not send message. Please try calling us.";
+    msg.className = "form-msg err";
+  }finally{
+    btn.disabled = false; btn.textContent = "Send Message";
+  }
+});
+
+/* ---------- Dining menu tabs ---------- */
+document.querySelectorAll('.menu-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.menu-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.menu-category').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector(`.menu-category[data-cat="${tab.dataset.cat}"]`).classList.add('active');
+  });
+});
+
+/* ---------- Cart logic ---------- */
+let cart = []; // {name, price, qty}
+
+function addToCart(btn){
+  const item = btn.closest('.menu-item');
+  const name = item.dataset.name;
+  const price = parseFloat(item.dataset.price);
+  const existing = cart.find(c=>c.name === name);
+  if(existing){ existing.qty += 1; } else { cart.push({name, price, qty:1}); }
+  renderCart();
+  showToast(name + " added to order");
+}
+
+function changeQty(name, delta){
+  const it = cart.find(c=>c.name===name);
+  if(!it) return;
+  it.qty += delta;
+  if(it.qty <= 0) cart = cart.filter(c=>c.name!==name);
+  renderCart();
+}
+
+function renderCart(){
+  const wrap = document.getElementById('cartItems');
+  const foot = document.getElementById('cartFoot');
+  const countEl = document.getElementById('cartCount');
+  const totalEl = document.getElementById('cartTotal');
+  const totalQty = cart.reduce((s,c)=>s+c.qty,0);
+  countEl.textContent = totalQty;
+
+  if(cart.length === 0){
+    wrap.innerHTML = '<div class="cart-empty">Your cart is empty. Add something delicious from the menu.</div>';
+    foot.style.display = 'none';
+    return;
+  }
+  foot.style.display = 'block';
+  let total = 0;
+  wrap.innerHTML = cart.map(c=>{
+    total += c.price * c.qty;
+    return `<div class="cart-line">
+      <div class="ci-info">
+        <h5>${c.name}</h5>
+        <div class="p">$${c.price} each</div>
+      </div>
+      <div class="qty-ctrl">
+        <button onclick="changeQty('${c.name.replace(/'/g,"\\'")}', -1)">−</button>
+        <span>${c.qty}</span>
+        <button onclick="changeQty('${c.name.replace(/'/g,"\\'")}', 1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  totalEl.textContent = "$" + total.toFixed(2);
+}
+
+const cartFab = document.getElementById('cartFab');
+const cartDrawer = document.getElementById('cartDrawer');
+const overlayDim = document.getElementById('overlayDim');
+function openCart(){ cartDrawer.classList.add('open'); overlayDim.classList.add('show'); }
+function closeCart(){ cartDrawer.classList.remove('open'); overlayDim.classList.remove('show'); }
+cartFab.addEventListener('click', openCart);
+document.getElementById('cartCloseBtn').addEventListener('click', closeCart);
+overlayDim.addEventListener('click', closeCart);
+
+document.getElementById('orderSubmitBtn').addEventListener('click', async ()=>{
+  const msg = document.getElementById('orderMsg');
+  const name = document.getElementById('ordName').value.trim();
+  const phone = document.getElementById('ordPhone').value.trim();
+  const location = document.getElementById('ordLocation').value.trim();
+  const notes = document.getElementById('ordNotes').value.trim();
+
+  if(cart.length === 0){ msg.textContent = "Your cart is empty."; msg.className = "form-msg err"; return; }
+  if(!name || !phone || !location){
+    msg.textContent = "Please fill in your name, phone and room/location.";
+    msg.className = "form-msg err";
+    return;
+  }
+
+  const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+  const payload = {
+    action: 'orderFood',
+    name, phone, location, notes,
+    items: cart.map(c=>`${c.qty}x ${c.name}`).join(', '),
+    total: total.toFixed(2),
+    timestamp: new Date().toISOString()
+  };
+
+  const btn = document.getElementById('orderSubmitBtn');
+  btn.disabled = true; btn.textContent = "Placing order...";
+  try{
+    await sendToBackend(payload);
+    msg.textContent = "Order placed! It'll be with you shortly.";
+    msg.className = "form-msg ok";
+    showToast("Order placed ✓");
+    cart = [];
+    renderCart();
+    document.getElementById('ordName').value = '';
+    document.getElementById('ordPhone').value = '';
+    document.getElementById('ordLocation').value = '';
+    document.getElementById('ordNotes').value = '';
+  }catch(err){
+    console.error(err);
+    msg.textContent = "Could not place order. Please call the front desk.";
+    msg.className = "form-msg err";
+  }finally{
+    btn.disabled = false; btn.textContent = "Place Order";
+  }
+});
+</script>
+</body>
+</html>
