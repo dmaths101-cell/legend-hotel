@@ -119,13 +119,36 @@ nav.links a:hover{color:var(--gold-light);}
   min-height:100vh;
   display:flex;align-items:center;justify-content:center;text-align:center;
   position:relative;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(201,161,90,.10), transparent 55%),
-    linear-gradient(180deg, rgba(10,9,8,.35), rgba(10,9,8,.85) 70%, var(--black) 100%),
-    url('assets/hero-facade.jpg') center/cover no-repeat;
+  overflow:hidden;
   background-color:#0d0b09;
   padding:140px 24px 100px;
 }
+.hero-bg{position:absolute;inset:0;z-index:0;}
+.hero-bg-slide{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  opacity:0;
+  animation:heroSlideFade 25s infinite;
+}
+.hero-bg-slide:nth-child(1){animation-delay:0s;}
+.hero-bg-slide:nth-child(2){animation-delay:5s;}
+.hero-bg-slide:nth-child(3){animation-delay:10s;}
+.hero-bg-slide:nth-child(4){animation-delay:15s;}
+.hero-bg-slide:nth-child(5){animation-delay:20s;}
+@keyframes heroSlideFade{
+  0%{opacity:0;}
+  4%{opacity:1;}
+  20%{opacity:1;}
+  24%{opacity:0;}
+  100%{opacity:0;}
+}
+.hero-overlay{
+  position:absolute;inset:0;z-index:1;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(201,161,90,.10), transparent 55%),
+    linear-gradient(180deg, rgba(10,9,8,.45), rgba(10,9,8,.88) 70%, var(--black) 100%);
+}
+.hero > .container{position:relative;z-index:2;}
 .hero-emblem{width:120px;margin:0 auto 26px;opacity:.95;}
 .hero h1{
   font-size:clamp(2.4rem,5.4vw,4.4rem);
@@ -393,6 +416,14 @@ footer{background:var(--black);border-top:1px solid var(--line);padding:70px 0 2
 
 <!-- ============ HERO ============ -->
 <section class="hero" id="home">
+  <div class="hero-bg">
+    <div class="hero-bg-slide" style="background-image:url('assets/reception.png');"></div>
+    <div class="hero-bg-slide" style="background-image:url('assets/suite.png');"></div>
+    <div class="hero-bg-slide" style="background-image:url('assets/restaurant.png');"></div>
+    <div class="hero-bg-slide" style="background-image:url('assets/pool.png');"></div>
+    <div class="hero-bg-slide" style="background-image:url('assets/spa.png');"></div>
+  </div>
+  <div class="hero-overlay"></div>
   <div class="container" style="max-width:780px;">
     <img src="assets/building.png" alt="Legend Hotel Crest" class="hero-emblem">
     <div class="hero-stars">★★★★★</div>
